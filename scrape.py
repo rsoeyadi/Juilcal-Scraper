@@ -1,5 +1,4 @@
 import os
-import sys
 from datetime import datetime
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -34,10 +33,6 @@ def signInToDb():
         "password": password
     })
 
-def connectToDb():
-    signInToDb()
-    return supabase
-
 def getHtml(link):
     r = requests.get(link)
     html = r.text
@@ -45,7 +40,7 @@ def getHtml(link):
     return soup
 
 def main():
-    supabase = connectToDb()
+    signInToDb()
     # delete everything first
     supabase.table('Events').delete().neq('id', 9999999).execute() 
     supabase.table('Last Updated').delete().neq('id', 9999999).execute() 
@@ -59,12 +54,13 @@ def main():
             for event in eventGroup.find('ul', { 'class' : 'event-group-events'}).find_all('li'):
                 eventClasses = event.get('class')
                 if 'event-cta' in eventClasses: continue # it's a cta, skip!
+
                 title_div = event.find('div', {'class': 'title-subtitle'})
                 if title_div and title_div.find('span'):
                     title = title_div.find('span').text
                 else:
                     title = None  
-
+                    
                 if title_div and title_div.find('a'):
                     link = "https://juilliard.edu" + title_div.find('a')['href'].split('?')[0]
                 else:
