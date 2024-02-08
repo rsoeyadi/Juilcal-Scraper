@@ -13,12 +13,13 @@ password: str = os.environ.get("PASSWORD")
 supabase: Client = create_client(url, key)
 
 class Event:
-    def __init__(self, title, dateTime, venue, link, tags):
+    def __init__(self, title, dateTime, venue, link, tags, imgLink):
         self.title = title
         self.date_time = dateTime
         self.venue = venue
         self.link = link
         self.tags = tags
+        self.imgLink = imgLink
 
 # def signupToDb(): # only need this if user account needs to be recreated for some reason
 #     supabase: Client = create_client(url, key)
@@ -42,8 +43,8 @@ def getHtml(link):
 def main():
     signInToDb()
     # delete everything first
-    supabase.table('Events').delete().neq('id', 9999999).execute() 
-    supabase.table('Last Updated').delete().neq('id', 9999999).execute() 
+    supabase.table('Events').delete().neq('id', 9999999999).execute() 
+    supabase.table('Last Updated').delete().neq('id', 9999999999).execute() 
 
     nextButtonExists = True
     linkSuffix = ""
@@ -60,7 +61,7 @@ def main():
                     title = title_div.find('span').text
                 else:
                     title = None  
-                    
+
                 if title_div and title_div.find('a'):
                     link = "https://juilliard.edu" + title_div.find('a')['href'].split('?')[0]
                 else:
@@ -80,8 +81,15 @@ def main():
                 time_element = event.find('time')
                 dateTime = time_element['datetime'] if time_element else None 
 
-                res = Event(title, dateTime, venue, link, tags)
-                data, count = supabase.table('Events').insert({"title": res.title, "dateTime": res.date_time, "venue" : res.venue, "link" : res.link, "tags" : res.tags}).execute()
+                imgSoup = getHtml(link)
+                imgLinkHtml = imgSoup.find('div', { 'class' : 'event-hero-banner__image' }).find('picture').find('img')
+                if imgLinkHtml:
+                    imgLink = "https://juilliard.edu" + imgLinkHtml['src']
+                else: 
+                    imgLink = None
+
+                res = Event(title, dateTime, venue, link, tags, imgLink)
+                data, count = supabase.table('Events').insert({"title": res.title, "dateTime": res.date_time, "venue" : res.venue, "link" : res.link, "tags" : res.tags, "imgLink" : res.imgLink }).execute()
                 print(data)
 
         loadMoreButton = soup.find('a', {'title' : 'Load more results'})
