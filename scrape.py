@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import requests
 from supabase import create_client, Client
+import shutil
 
 load_dotenv()
 url: str = os.environ.get("SUPABASE_URL")
@@ -40,7 +41,18 @@ def getHtml(link):
     soup = BeautifulSoup(html, 'html.parser')
     return soup
 
+def saveImage(id, url):
+    headers ={
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+    }
+    res = requests.get(url,headers=headers)
+    with open("../client/public/img/" + str(id) + '.jpg', 'wb') as f:
+        f.write(res.content)
+
 def main():
+    if os.path.exists("../client/public/img"):
+        shutil.rmtree('../client/public/img') # clear this out!
+    os.makedirs("../client/public/img")
     signInToDb()
     # delete everything first
     supabase.table('Events').delete().neq('id', 9999999999).execute() 
@@ -90,6 +102,8 @@ def main():
 
                 res = Event(title, dateTime, venue, link, tags, imgLink)
                 data, count = supabase.table('Events').insert({"title": res.title, "dateTime": res.date_time, "venue" : res.venue, "link" : res.link, "tags" : res.tags, "imgLink" : res.imgLink }).execute()
+                id = data[1][0]['id'] # for naming the images uniquely
+                saveImage(id, imgLink)
                 print(data)
 
         loadMoreButton = soup.find('a', {'title' : 'Load more results'})
