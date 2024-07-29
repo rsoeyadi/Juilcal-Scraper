@@ -13,6 +13,13 @@ email: str = os.environ.get("USERNAME")
 password: str = os.environ.get("PASSWORD")
 supabase: Client = create_client(url, key)
 
+# def signupToDb(): # only need this if user account needs to be recreated for some reason
+#     supabase: Client = create_client(url, key)
+#     res = supabase.auth.sign_up({
+#     "email": email,
+#     "password": password,
+#     })
+
 class Event:
     def __init__(self, title, dateTime, venue, link, tags, imgLink, dayOfWeek):
         self.title = title
