@@ -14,20 +14,14 @@ password: str = os.environ.get("PASSWORD")
 supabase: Client = create_client(url, key)
 
 class Event:
-    def __init__(self, title, dateTime, venue, link, tags, imgLink):
+    def __init__(self, title, dateTime, venue, link, tags, imgLink, dayOfWeek):
         self.title = title
         self.date_time = dateTime
         self.venue = venue
         self.link = link
         self.tags = tags
         self.imgLink = imgLink
-
-# def signupToDb(): # only need this if user account needs to be recreated for some reason
-#     supabase: Client = create_client(url, key)
-#     res = supabase.auth.sign_up({
-#     "email": email,
-#     "password": password,
-#     })
+        self.dayOfWeek = dayOfWeek
 
 def signInToDb():
     supabase.auth.sign_in_with_password({
@@ -48,6 +42,10 @@ def saveImage(id, url):
     res = requests.get(url,headers=headers)
     with open("../client/public/img/" + str(id) + '.jpg', 'wb') as f:
         f.write(res.content)
+
+def get_day_of_week(date_str):
+    date_obj = datetime.fromisoformat(date_str)
+    return date_obj.strftime('%A')  # Get the full weekday name
 
 def main():
     if os.path.exists("../client/public/img"):
@@ -92,6 +90,7 @@ def main():
 
                 time_element = event.find('time')
                 dateTime = time_element['datetime'] if time_element else None 
+                dayOfWeek = get_day_of_week(dateTime) if dateTime else None
 
                 imgSoup = getHtml(link)
                 imgLinkHtml = imgSoup.find('div', { 'class' : 'event-hero-banner__image' }).find('picture').find('img')
@@ -100,8 +99,8 @@ def main():
                 else: 
                     imgLink = None
 
-                res = Event(title, dateTime, venue, link, tags, imgLink)
-                data, count = supabase.table('Events').insert({"title": res.title, "dateTime": res.date_time, "venue" : res.venue, "link" : res.link, "tags" : res.tags, "imgLink" : res.imgLink }).execute()
+                res = Event(title, dateTime, venue, link, tags, imgLink, dayOfWeek)
+                data, count = supabase.table('Events').insert({"title": res.title, "dateTime": res.date_time, "venue" : res.venue, "link" : res.link, "tags" : res.tags, "imgLink" : res.imgLink, "dayOfWeek": res.dayOfWeek }).execute()
                 id = data[1][0]['id'] # for naming the images uniquely
                 saveImage(id, imgLink)
                 print(data)
