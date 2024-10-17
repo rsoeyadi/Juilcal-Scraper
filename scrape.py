@@ -122,11 +122,10 @@ def main():
 
         loadMoreButton = soup.find('a', {'title': 'Load more results'})
         if loadMoreButton:
-            print("\n Loading more events...")
+            print("\nLoading more events...")
             linkSuffix = loadMoreButton['href']
         else:
             nextButtonExists = False
-            formattedDatetime = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-            supabase.table('Last Updated').insert({"lastUpdated": formattedDatetime}).execute()
+            break
 
 main()
