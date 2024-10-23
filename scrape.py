@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -126,6 +127,9 @@ def main():
             linkSuffix = loadMoreButton['href']
         else:
             nextButtonExists = False
-            break
+            print("Exiting now...")
+            os._exit(0)
 
-main()
+
+if __name__ == "__main__":
+    main()
